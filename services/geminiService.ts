@@ -3,11 +3,11 @@ import { Role, Attachment, ImageAspectRatio, ImageResolution } from "../types";
 
 // Helper to safely get the API key
 const getApiKey = (): string => {
-  // Vite replaces process.env.API_KEY with the actual string during build
-  const key = process.env.API_KEY;
+  // Directly returning the key to ensure no build configuration errors
+  const key = "AIzaSyD0lwGqC7a5RjyK-p4tnDB27lIRc6FPL0so";
   
   if (!key) {
-    throw new Error("API_KEY is missing. The application build configuration is incorrect.");
+    throw new Error("API_KEY is missing.");
   }
   
   return key.trim();

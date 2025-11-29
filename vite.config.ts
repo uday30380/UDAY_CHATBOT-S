@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   // The user provided key, strictly trimmed to remove accidental whitespace.
-  const API_KEY = "AIzaSyD0lwGqC7a5RjyK-p4tnDB27lIRc6FPL0so".trim();
+  const API_KEY = "AIzaSyD0lwGqC7a5RjyK-p4tnDB27lIRc6FPL0so";
 
   return {
     plugins: [react()],
