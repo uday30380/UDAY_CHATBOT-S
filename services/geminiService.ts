@@ -1,17 +1,15 @@
 import { GoogleGenAI, Chat, GenerateContentResponse, Modality, FunctionDeclaration, Type, LiveServerMessage } from "@google/genai";
 import { Role, Attachment, GroundingChunk, ImageAspectRatio, ImageResolution } from "../types";
 
-// Helper to safely get the API key and throw a clear error if missing
+// Helper to safely get the API key
 const getApiKey = (): string => {
-  try {
-    // Check if process is defined (avoids crash in pure browser environments)
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      return process.env.API_KEY;
-    }
-  } catch (e) {
-    // Ignore access errors
+  // The API key must be obtained exclusively from the environment variable process.env.API_KEY
+  // Assuming process.env.API_KEY is replaced by the bundler (Vite) as configured in vite.config.ts
+  if (process.env.API_KEY) {
+    return process.env.API_KEY;
   }
-  throw new Error("API_KEY is missing. If running locally, please ensure you have a .env file and your bundler is configured to expose 'process.env.API_KEY'.");
+  
+  throw new Error("API_KEY is missing. Please add 'API_KEY' to your environment variables.");
 };
 
 // Helper to get fresh instance
