@@ -10,7 +10,7 @@ const getApiKey = (): string => {
     throw new Error("API_KEY is missing. The application build configuration is incorrect.");
   }
   
-  return key;
+  return key.trim();
 };
 
 // Helper to get fresh instance

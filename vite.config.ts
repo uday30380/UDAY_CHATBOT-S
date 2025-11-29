@@ -6,8 +6,8 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '');
 
-  // The user provided key
-  const API_KEY = "AIzaSyD0lwGqC7a5RjyK-p4tnDB27lIRc6FPL0so";
+  // The user provided key, strictly trimmed to remove accidental whitespace.
+  const API_KEY = "AIzaSyD0lwGqC7a5RjyK-p4tnDB27lIRc6FPL0so".trim();
 
   return {
     plugins: [react()],
