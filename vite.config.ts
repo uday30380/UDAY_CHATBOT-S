@@ -6,12 +6,15 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '');
 
+  // The user provided key
+  const API_KEY = "AIzaSyD0lwGqC7a5RjyK-p4tnDB27lIRc6FPL0so";
+
   return {
     plugins: [react()],
     define: {
-      // Explicitly define the API key. 
-      // It prioritizes the Vercel/System Env Var, then falls back to the hardcoded key.
-      'process.env.API_KEY': JSON.stringify(env.API_KEY || "AIzaSyD0lwGqC7a5RjyK-p4tnDB27lIRc6FPL0so")
+      // Define process.env.API_KEY to be replaced by the string literal of the key during build.
+      // This ensures the key is embedded in the browser bundle.
+      'process.env.API_KEY': JSON.stringify(API_KEY)
     }
   };
 });

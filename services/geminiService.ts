@@ -1,18 +1,16 @@
-import { GoogleGenAI, Chat, GenerateContentResponse, Modality, FunctionDeclaration, Type, LiveServerMessage } from "@google/genai";
-import { Role, Attachment, GroundingChunk, ImageAspectRatio, ImageResolution } from "../types";
+import { GoogleGenAI, GenerateContentResponse, Modality, LiveServerMessage } from "@google/genai";
+import { Role, Attachment, ImageAspectRatio, ImageResolution } from "../types";
 
 // Helper to safely get the API key
 const getApiKey = (): string => {
-  // The API key must be obtained exclusively from the environment variable process.env.API_KEY
-  // Assuming process.env.API_KEY is replaced by the bundler (Vite) as configured in vite.config.ts
+  // Vite replaces process.env.API_KEY with the actual string during build
   const key = process.env.API_KEY;
   
   if (!key) {
-    throw new Error("API_KEY is missing. Please add 'API_KEY' to your environment variables.");
+    throw new Error("API_KEY is missing. The application build configuration is incorrect.");
   }
   
-  // Trim to ensure no accidental whitespace causes an "Invalid API Key" error
-  return key.trim();
+  return key;
 };
 
 // Helper to get fresh instance
