@@ -1,0 +1,9 @@
+{
+  "name": "Vempati Uday Kiran's Chat Bot",
+  "description": "A high-performance, aesthetically pleasing AI chatbot powered by Google's Gemini 2.5 Flash model, featuring real-time streaming responses and markdown support.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
