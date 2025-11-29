@@ -1,8 +1,21 @@
 import { GoogleGenAI, Chat, GenerateContentResponse, Modality, FunctionDeclaration, Type, LiveServerMessage } from "@google/genai";
 import { Role, Attachment, GroundingChunk, ImageAspectRatio, ImageResolution } from "../types";
 
-// Helper to get fresh instance (needed for key selection)
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to safely get the API key and throw a clear error if missing
+const getApiKey = () => {
+  try {
+    // Check if process is defined (avoids crash in pure browser environments)
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      return process.env.API_KEY;
+    }
+  } catch (e) {
+    // Ignore access errors
+  }
+  throw new Error("API_KEY is missing. If running locally, please ensure you have a .env file and your bundler is configured to expose 'process.env.API_KEY'.");
+};
+
+// Helper to get fresh instance
+const getAI = () => new GoogleGenAI({ apiKey: getApiKey() });
 
 // --- Chat & Text ---
 
@@ -197,7 +210,7 @@ export async function generateVideo(
   if (!videoUri) throw new Error("Video generation failed");
 
   // Fetch the actual video bytes using the key
-  return `${videoUri}&key=${process.env.API_KEY}`;
+  return `${videoUri}&key=${getApiKey()}`;
 }
 
 // --- TTS ---

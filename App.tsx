@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { streamChatResponse, generateImage, generateVideo } from './services/geminiService';
 import { ChatMessage, Role, AppMode, Attachment, ImageAspectRatio, ImageResolution, User, LoginLog, SystemEvent, Announcement } from './types';
@@ -46,6 +45,34 @@ const App: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
+
+  // Session Management (15-min Persistence)
+  useEffect(() => {
+    try {
+      const storedSession = localStorage.getItem('user_session');
+      if (storedSession) {
+        const { user: savedUser, expiry } = JSON.parse(storedSession);
+        if (Date.now() < expiry) {
+          // Valid session, restore
+          const foundUser = allUsers.find(u => u.id === savedUser.id) || savedUser;
+          setUser(foundUser);
+          // Refresh existing check if we need to sync mock DB
+          if (!allUsers.find(u => u.id === savedUser.id)) {
+            setAllUsers(prev => [...prev, savedUser]);
+          }
+        } else {
+          localStorage.removeItem('user_session');
+        }
+      }
+    } catch (e) {
+      console.error("Session restore failed", e);
+    }
+  }, []);
+
+  const saveUserSession = (userToSave: User) => {
+    const expiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+    localStorage.setItem('user_session', JSON.stringify({ user: userToSave, expiry }));
+  };
 
   const logSystemEvent = (action: string, details: string, type: 'info' | 'warning' | 'error' | 'success' = 'info') => {
     const newEvent: SystemEvent = {
@@ -103,6 +130,7 @@ const App: React.FC = () => {
     }
 
     setUser(currentUser);
+    saveUserSession(currentUser);
     
     // Log the successful login
     const newLog: LoginLog = {
@@ -228,7 +256,8 @@ const App: React.FC = () => {
           history,
           tools: activeTools.length > 0 ? activeTools : undefined,
           toolConfig: activeTools.length > 0 && toolConfig.retrievalConfig ? toolConfig : undefined,
-          thinkingBudget
+          thinkingBudget,
+          systemInstruction: `You are Vempati Uday Kiran's Chat Bot, a helpful and friendly AI assistant. ${mode === 'chat-reasoning' ? 'You are currently in Reasoning Mode, so provide deep, thoughtful answers.' : 'Keep answers concise and useful.'}`
         });
 
         // Placeholder
@@ -255,16 +284,28 @@ const App: React.FC = () => {
         }
       }
 
-    } catch (error) {
-      console.error("Error:", error);
+    } catch (error: any) {
+      console.error("App Error:", error);
+      
+      let errorMessage = "Sorry, something went wrong.";
+      if (error && error.message) {
+         if (error.message.includes('API_KEY')) {
+            errorMessage = `Configuration Error: ${error.message}`;
+         } else if (error.message.includes('403')) {
+            errorMessage = "Access Denied (403). Please check your API Key permissions and quotas.";
+         } else {
+            errorMessage = `Error: ${error.message}`;
+         }
+      }
+
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last.role === Role.MODEL) {
-          return prev.map(msg => msg.id === last.id ? { ...msg, content: "Sorry, something went wrong.", isError: true } : msg);
+          return prev.map(msg => msg.id === last.id ? { ...msg, content: errorMessage, isError: true } : msg);
         }
-        return [...prev, { id: Date.now().toString(), role: Role.MODEL, content: "Error processing request.", timestamp: Date.now(), isError: true }];
+        return [...prev, { id: Date.now().toString(), role: Role.MODEL, content: errorMessage, timestamp: Date.now(), isError: true }];
       });
-      logSystemEvent('API Error', `Failed to process request for ${user.name}`, 'error');
+      logSystemEvent('API Error', `Failed to process request for ${user.name}: ${errorMessage}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -279,6 +320,7 @@ const App: React.FC = () => {
     setUser(null);
     setMessages([]);
     setMode('chat-flash');
+    localStorage.removeItem('user_session');
   };
 
   const updateUserProfile = (newName: string, newAvatar?: string) => {
@@ -286,6 +328,7 @@ const App: React.FC = () => {
       // Update local state
       const updatedUser = { ...user, name: newName, avatar: newAvatar || user.avatar };
       setUser(updatedUser);
+      saveUserSession(updatedUser); // Update session storage too
       // Update DB
       setAllUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
       logSystemEvent('Profile Update', `User ${user.id} updated their profile.`, 'info');
