@@ -288,14 +288,28 @@ const App: React.FC = () => {
       console.error("App Error:", error);
       
       let errorMessage = "Sorry, something went wrong.";
-      if (error && error.message) {
-         if (error.message.includes('API_KEY')) {
-            errorMessage = `Configuration Error: ${error.message}`;
-         } else if (error.message.includes('403')) {
-            errorMessage = "Access Denied (403). Please check your API Key permissions and quotas.";
-         } else {
-            errorMessage = `Error: ${error.message}`;
-         }
+      if (error) {
+        // Handle API Key errors explicitly
+        if (error.message && (error.message.includes("API key not valid") || error.message.includes("API_KEY"))) {
+          errorMessage = "Configuration Error: The provided API Key is invalid or missing. Please check your deployment settings or the hardcoded key.";
+        } else {
+           // Try parsing JSON error messages from the SDK/API
+           try {
+              // Sometimes the error message is a JSON stringified object
+              const errorBody = error.message.replace(/^[^{]*({.*})[^}]*$/, '$1'); 
+              const errorObj = JSON.parse(errorBody);
+              if (errorObj.error && errorObj.error.message) {
+                 errorMessage = errorObj.error.message;
+                 if (errorMessage.includes("API key not valid")) {
+                   errorMessage = "Configuration Error: API Key rejected by Google. Please check your API Key.";
+                 }
+              } else {
+                 errorMessage = error.message;
+              }
+           } catch (e) {
+              errorMessage = error.message || "Unknown error occurred.";
+           }
+        }
       }
 
       setMessages(prev => {

@@ -5,11 +5,14 @@ import { Role, Attachment, GroundingChunk, ImageAspectRatio, ImageResolution } f
 const getApiKey = (): string => {
   // The API key must be obtained exclusively from the environment variable process.env.API_KEY
   // Assuming process.env.API_KEY is replaced by the bundler (Vite) as configured in vite.config.ts
-  if (process.env.API_KEY) {
-    return process.env.API_KEY;
+  const key = process.env.API_KEY;
+  
+  if (!key) {
+    throw new Error("API_KEY is missing. Please add 'API_KEY' to your environment variables.");
   }
   
-  throw new Error("API_KEY is missing. Please add 'API_KEY' to your environment variables.");
+  // Trim to ensure no accidental whitespace causes an "Invalid API Key" error
+  return key.trim();
 };
 
 // Helper to get fresh instance
