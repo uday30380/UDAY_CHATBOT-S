@@ -2,7 +2,7 @@ import { GoogleGenAI, Chat, GenerateContentResponse, Modality, FunctionDeclarati
 import { Role, Attachment, GroundingChunk, ImageAspectRatio, ImageResolution } from "../types";
 
 // Helper to safely get the API key and throw a clear error if missing
-const getApiKey = () => {
+const getApiKey = (): string => {
   try {
     // Check if process is defined (avoids crash in pure browser environments)
     if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
@@ -155,7 +155,7 @@ export async function generateImage(
   });
 
   for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData) {
+    if (part.inlineData && part.inlineData.data) {
       return part.inlineData.data;
     }
   }
